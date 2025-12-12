@@ -71,8 +71,8 @@ trainer_stats = trainer.train()
 
 # 7. Save
 print("Saving model...")
-model.save_pretrained_gguf(cfg['training']['output_dir'] + "_gguf", tokenizer, quantization_method = "q4_k_m")
-# Or standard save: model.save_pretrained(cfg['training']['output_dir'])
+# model.save_pretrained_gguf(cfg['training']['output_dir'] + "_gguf", tokenizer, quantization_method = "q4_k_m")
+model.save_pretrained(cfg['training']['output_dir'])
 
 wandb.finish()
 print("Finished.")
