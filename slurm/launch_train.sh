@@ -13,18 +13,9 @@
 
 module purge
 
-if [ ! -d ".venv" ]; then
-    uv venv --python 3.12
-fi
-
-source .venv/bin/activate
-
 mkdir -p logs outputs
 
-echo "Preparing data..."
-python scripts/data_prep.py
-
 echo "Starting training..."
-python scripts/train.py
+make train CONFIG=configs/config.yaml
 
 echo "Job finished."
