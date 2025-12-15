@@ -16,3 +16,6 @@ data: split preprocess
 
 train:
 	$(PYTHON) scripts/train.py --config $(CONFIG)
+
+evaluate:
+	$(PYTHON) scripts/evaluate.py --config $(CONFIG)
