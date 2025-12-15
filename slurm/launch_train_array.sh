@@ -8,6 +8,7 @@
 #SBATCH --gres=gpu:1
 #SBATCH --constraint="COMPUTE_CAPABILITY_7_5|COMPUTE_CAPABILITY_8_0|COMPUTE_CAPABILITY_8_6|COMPUTE_CAPABILITY_8_9"
 #SBATCH --partition=shared-gpu
+#SBATCH --array=1-2
 #SBATCH --time=02:00:00
 #SBATCH --mem=32G
 
@@ -15,8 +16,9 @@ module purge
 
 mkdir -p logs outputs
 
+CONFIG=$(sed -n "${SLURM_ARRAY_TASK_ID}p" slurm/array_configs.txt)
+
 echo "Starting training..."
-srun make train CONFIG=configs/config.yaml
-srun make train CONFIG=configs/config_llama3.2.yaml
+srun make train CONFIG=$CONFIG
 
 echo "Job finished."

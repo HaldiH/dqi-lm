@@ -4,7 +4,6 @@ from typing import cast
 from unsloth import FastLanguageModel, is_bfloat16_supported
 from trl.trainer.sft_trainer import SFTTrainer
 from trl.trainer.sft_config import SFTConfig
-from transformers import TrainingArguments
 from datasets import load_dataset, Dataset
 import weave
 import wandb
