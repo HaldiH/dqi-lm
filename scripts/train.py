@@ -1,9 +1,11 @@
 import yaml
 import torch
+from typing import cast
 from unsloth import FastLanguageModel, is_bfloat16_supported
-from trl import SFTTrainer
+from trl.trainer.sft_trainer import SFTTrainer
+from trl.trainer.sft_config import SFTConfig
 from transformers import TrainingArguments
-from datasets import load_dataset
+from datasets import load_dataset, Dataset
 import weave
 import wandb
 import os
@@ -35,23 +37,29 @@ def train(cfg):
         random_state=cfg["training"]["seed"],
     )
 
-    train_dataset = load_dataset(
-        "json", data_files=cfg["data"]["processed_train_path"], split="train"
+    train_dataset = cast(
+        Dataset,
+        load_dataset(
+            "json", data_files=cfg["data"]["processed_train_path"], split="train"
+        ),
     )
-    eval_dataset = load_dataset(
-        "json", data_files=cfg["data"]["processed_val_path"], split="train"
+    eval_dataset = cast(
+        Dataset,
+        load_dataset(
+            "json", data_files=cfg["data"]["processed_val_path"], split="train"
+        ),
     )
 
     trainer = SFTTrainer(
         model=model,
-        tokenizer=tokenizer,
+        processing_class=tokenizer,
         train_dataset=train_dataset,
         eval_dataset=eval_dataset,
-        dataset_text_field="text",
-        max_seq_length=cfg["model"]["max_seq_length"],
-        dataset_num_proc=2,
-        packing=False,
-        args=TrainingArguments(
+        args=SFTConfig(
+            dataset_text_field="text",
+            max_length=cfg["model"]["max_seq_length"],
+            dataset_num_proc=2,
+            packing=False,
             per_device_train_batch_size=cfg["training"]["per_device_train_batch_size"],
             gradient_accumulation_steps=cfg["training"]["gradient_accumulation_steps"],
             warmup_steps=cfg["training"]["warmup_steps"],
@@ -62,7 +70,7 @@ def train(cfg):
             logging_steps=cfg["training"]["logging_steps"],
             optim=cfg["training"]["optim"],
             weight_decay=0.01,
-            evaluation_strategy="steps",
+            eval_strategy="steps",
             eval_steps=10,
             save_strategy="steps",
             save_steps=10,
