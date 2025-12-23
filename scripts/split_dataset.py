@@ -14,10 +14,10 @@ def split_data(config_path):
 
     col_label = config["data"]["col_label"]
 
-    print(f"Total dataset : {len(df)} rows")
-
     # Clean data: drop rows with missing labels
     df = df.dropna(subset=[col_label])
+
+    print(f"Total dataset : {len(df)} rows")
 
     # 1. Split Train (80%) vs Temp (20%)
     # stratify=df[col_label] ensures classes are balanced
