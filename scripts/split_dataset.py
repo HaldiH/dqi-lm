@@ -9,10 +9,13 @@ def split_data(config_path):
     with open(config_path, "r") as f:
         config = yaml.safe_load(f)
 
-    input_path = config["data"]["raw_path"]
+    input_path = config["data"]["input_path"]
     df = pd.read_csv(input_path)
 
     col_label = config["data"]["col_label"]
+    labels = config["data"]["labels"]
+
+    df = df[df[col_label].isin(labels)]
 
     # Clean data: drop rows with missing labels
     df = df.dropna(subset=[col_label])

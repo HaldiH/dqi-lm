@@ -24,6 +24,8 @@ data/*
 .env.*
 !.env.example
 
+.checkpoints/
+
 # Logs and output files
 logs/
 outputs/
