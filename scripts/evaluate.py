@@ -16,12 +16,14 @@ import os
 import argparse
 
 
-def extract_score(generated_text):
+def extract_score(generated_text, num_classes):
     """
-    Extracts the first digit (0-3) found in the generated text.
+    Extracts the first digit found in the generated text that is a valid class label.
     """
-    # Search for the first digit that appears (0, 1, 2 or 3)
-    match = re.search(r"[0-3]", generated_text)
+    # Create pattern for valid class indices (0 to num_classes-1)
+    valid_digits = "|" .join(str(i) for i in range(num_classes))
+    pattern = f"[{valid_digits}]"
+    match = re.search(pattern, generated_text)
     if match:
         return int(match.group(0))
     else:
@@ -72,6 +74,11 @@ def evaluate(config_path):
     print(f"Test dataset after merge: {len(df_test)} rows")
 
     col_label = cfg["data"]["col_label"]
+    num_classes = len(cfg["data"]["labels"])
+    results_dir = cfg["evaluation"]["results_dir"]
+    print(f"Number of classes: {num_classes}")
+    print(f"Results will be saved to: {results_dir}")
+    
     y_true = df_test[col_label].tolist()
     y_pred = []
 
@@ -95,16 +102,16 @@ def evaluate(config_path):
         new_tokens = outputs[0, inputs.input_ids.shape[1] :]
         decoded = tokenizer.decode(new_tokens, skip_special_tokens=True)
 
-        pred = extract_score(decoded)
+        pred = extract_score(decoded, num_classes)
         y_pred.append(pred)
 
     # Save predictions to CSV
     results_df = pd.DataFrame(
         {"speech": df_test["speech"], "true_label": y_true, "predicted_label": y_pred}
     )
-    os.makedirs("results", exist_ok=True)
-    results_df.to_csv("results/predictions.csv", index=False)
-    print("\nPredictions saved to 'results/predictions.csv'")
+    os.makedirs(results_dir, exist_ok=True)
+    results_df.to_csv(f"{results_dir}/predictions.csv", index=False)
+    print(f"\nPredictions saved to '{results_dir}/predictions.csv'")
 
     # 4. Calculate metrics
     # Filter parsing errors (-1)
@@ -120,35 +127,43 @@ def evaluate(config_path):
         f"Mean Absolute Error : {mean_absolute_error(y_true_clean, y_pred_clean):.4f}"
     )
 
+    # Generate target names dynamically
+    target_names = [f"Level {i}" for i in range(num_classes)]
+    
     print("\nClassification Report :")
     print(
         classification_report(
             y_true_clean,
             y_pred_clean,
-            target_names=["Level 0", "Level 1", "Level 2", "Level 3"],
+            target_names=target_names,
         )
     )
 
     # 5. Visualization : Confusion Matrix
-    cm = confusion_matrix(y_true_clean, y_pred_clean, labels=[0, 1, 2, 3])
+    labels = list(range(num_classes))
+    cm = confusion_matrix(y_true_clean, y_pred_clean, labels=labels)
 
+    # Generate dynamic tick labels
+    pred_labels = [f"Pred {i}" for i in range(num_classes)]
+    true_labels = [f"True {i}" for i in range(num_classes)]
+    
     plt.figure(figsize=(8, 6))
     sns.heatmap(
         cm,
         annot=True,
         fmt="d",
         cmap="Blues",
-        xticklabels=["Pred 0", "Pred 1", "Pred 2", "Pred 3"],
-        yticklabels=["True 0", "True 1", "True 2", "True 3"],
+        xticklabels=pred_labels,
+        yticklabels=true_labels,
     )
     plt.xlabel("Prediction")
     plt.ylabel("Ground Truth")
     plt.title("Confusion Matrix - DQI Justification")
 
     # Save graph
-    os.makedirs("results", exist_ok=True)
-    plt.savefig("results/confusion_matrix.png")
-    print("\nGraph saved to 'results/confusion_matrix.png'")
+    os.makedirs(results_dir, exist_ok=True)
+    plt.savefig(f"{results_dir}/confusion_matrix.png")
+    print(f"\nGraph saved to '{results_dir}/confusion_matrix.png'")
 
 
 if __name__ == "__main__":

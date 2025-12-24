@@ -1,6 +1,6 @@
 model:
   name: "unsloth/mistral-7b-instruct-v0.3-bnb-4bit"
-  max_seq_length: 2048
+  max_seq_length: 8192
   load_in_4bit: true
 
 lora:
@@ -46,6 +46,9 @@ data:
   col_label: "Justification-level" # Name of the column containing the score (0-3)
   col_speech: "speech" # Name of the column containing the text to analyze
   labels: [0, 1, 2, 3, 4]
+
+evaluation:
+  results_dir: "results"
 
 prompts:
   system_prompt_path: "prompts/justification_criteria.txt" # Path to your text file
