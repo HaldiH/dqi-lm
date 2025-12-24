@@ -47,7 +47,7 @@ def evaluate(config_path):
     print(f"Loading model from {model_path}...")
     model, tokenizer = FastLanguageModel.from_pretrained(
         model_name=model_path,
-        max_seq_length=2048,
+        max_seq_length=cfg["model"]["max_seq_length"],
         dtype=None,
         load_in_4bit=True,
     )
