@@ -79,7 +79,7 @@ def format_data(cfg):
         col_label,
         processed_train_path,
     )
-    print(f"Sample generated (Train):\n{train_data[0]['text'][:300]}...")
+    print(f"Sample generated (Train):\n{train_data[0]['prompt'][:300]}...")
 
     # 2. Process Validation
     val_path = cfg["data"]["val_path"]
