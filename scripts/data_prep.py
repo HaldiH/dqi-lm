@@ -22,7 +22,7 @@ def process_split(
         full_text = template.format(
             system_prompt=system_prompt_content,
             input_text=row[col_speech],
-            output_score=str(row[col_label]),
+            output_score=str(int(float(row[col_label]))),
         )
         formatted_data.append({"text": full_text})
 

@@ -4,8 +4,8 @@ model:
   load_in_4bit: true
 
 lora:
-  r: 16
-  lora_alpha: 16
+  r: 32
+  lora_alpha: 32
   lora_dropout: 0
   target_modules:
     [
@@ -22,9 +22,9 @@ training:
   output_dir: "outputs/mistral_finetuned"
   per_device_train_batch_size: 2
   gradient_accumulation_steps: 4
-  warmup_steps: 5
-  max_steps: 60
-  learning_rate: 2.0e-4
+  warmup_steps: 30
+  max_steps: 300
+  learning_rate: 1.0e-4
   logging_steps: 1
   seed: 3407
   optim: "adamw_8bit"
