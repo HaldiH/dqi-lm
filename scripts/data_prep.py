@@ -17,14 +17,20 @@ def process_split(
 ):
     formatted_data = []
     print(f"Formatting {len(df)} entries...")
+    
+    # Split template to separate prompt and completion
+    if "{output_score}" not in template:
+            raise ValueError("Template must contain {output_score}")
+    prompt_template = template.split("{output_score}")[0]
+
     for _, row in df.iterrows():
         # Constructing the final text for the LLM
-        full_text = template.format(
+        prompt = prompt_template.format(
             system_prompt=system_prompt_content,
             input_text=row[col_speech],
-            output_score=str(int(float(row[col_label]))),
         )
-        formatted_data.append({"text": full_text})
+        completion = str(int(float(row[col_label])))
+        formatted_data.append({"prompt": prompt, "completion": completion})
 
     dataset = Dataset.from_pandas(pd.DataFrame(formatted_data))
     dataset.to_json(output_path)

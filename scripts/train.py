@@ -2,8 +2,7 @@ import yaml
 import torch
 from typing import cast
 from unsloth import FastLanguageModel, is_bfloat16_supported
-from trl.trainer.sft_trainer import SFTTrainer
-from trl.trainer.sft_config import SFTConfig
+from trl import SFTConfig, SFTTrainer
 from datasets import load_dataset, Dataset
 import weave
 import wandb
@@ -55,7 +54,7 @@ def train(cfg):
         train_dataset=train_dataset,
         eval_dataset=eval_dataset,
         args=SFTConfig(
-            dataset_text_field="text",
+            completion_only_loss=True,
             max_length=cfg["model"]["max_seq_length"],
             dataset_num_proc=2,
             packing=False,

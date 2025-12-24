@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+# Original script adapted from Mitchell Bosley's dqi-annotation-pipeline
+# Repository: https://github.com/mbosley/dqi-annotation-pipeline
+# Original file: https://github.com/mbosley/dqi-annotation-pipeline/blob/main/src/clean_data/merge_us_debate_data.py
 import pandas as pd
 import os
 import argparse
