@@ -52,5 +52,3 @@ evaluation:
 
 prompts:
   system_prompt_path: "prompts/justification_criteria.txt" # Path to your text file
-  # The Mistral skeleton (change it if you change the model)
-  format_template: "[INST] {system_prompt}\n\nText to analyze:\n{input_text} [/INST] {output_score}"

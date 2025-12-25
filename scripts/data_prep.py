@@ -12,25 +12,24 @@ def load_prompt_content(path):
         return f.read().strip()
 
 
-def process_split(
-    df, template, system_prompt_content, col_speech, col_label, output_path
-):
+def process_split(df, system_prompt_content, col_speech, col_label, output_path):
     formatted_data = []
     print(f"Formatting {len(df)} entries...")
-    
-    # Split template to separate prompt and completion
-    if "{output_score}" not in template:
-            raise ValueError("Template must contain {output_score}")
-    prompt_template = template.split("{output_score}")[0]
 
     for _, row in df.iterrows():
-        # Constructing the final text for the LLM
-        prompt = prompt_template.format(
-            system_prompt=system_prompt_content,
-            input_text=row[col_speech],
+        # Constructing the final text for the LLM in messages format
+        grade = str(int(float(row[col_label])))
+        speech_text = row[col_speech]
+
+        formatted_data.append(
+            {
+                "messages": [
+                    {"role": "system", "content": system_prompt_content},
+                    {"role": "user", "content": f"Text to analyse: '{speech_text}'"},
+                    {"role": "assistant", "content": grade},
+                ]
+            }
         )
-        completion = str(int(float(row[col_label])))
-        formatted_data.append({"prompt": prompt, "completion": completion})
 
     dataset = Dataset.from_pandas(pd.DataFrame(formatted_data))
     dataset.to_json(output_path)
@@ -45,7 +44,6 @@ def format_data(cfg):
     print(f"Loading prompt from: {prompt_path}")
     system_prompt_content = load_prompt_content(prompt_path)
 
-    template = cfg["prompts"]["format_template"]
     col_label = cfg["data"]["col_label"]
     col_speech = cfg["data"]["col_speech"]
 
@@ -73,13 +71,12 @@ def format_data(cfg):
     processed_train_path = cfg["data"]["processed_train_path"]
     train_data = process_split(
         df_train,
-        template,
         system_prompt_content,
         col_speech,
         col_label,
         processed_train_path,
     )
-    print(f"Sample generated (Train):\n{train_data[0]['prompt'][:300]}...")
+    print(f"Sample generated (Train):\n{train_data[0]['messages'][:300]}...")
 
     # 2. Process Validation
     val_path = cfg["data"]["val_path"]
@@ -99,7 +96,6 @@ def format_data(cfg):
     processed_val_path = cfg["data"]["processed_val_path"]
     process_split(
         df_val,
-        template,
         system_prompt_content,
         col_speech,
         col_label,

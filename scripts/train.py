@@ -2,6 +2,7 @@ import yaml
 import torch
 from typing import cast
 from unsloth import FastLanguageModel, is_bfloat16_supported
+from unsloth.chat_templates import get_chat_template
 from trl import SFTConfig, SFTTrainer
 from datasets import load_dataset, Dataset
 import weave
@@ -35,18 +36,32 @@ def train(cfg):
         random_state=cfg["training"]["seed"],
     )
 
+    tokenizer = get_chat_template(tokenizer)
+
+    def formatting_prompts_func(examples: dict):
+        convos = examples["messages"]
+        texts = [
+            tokenizer.apply_chat_template(
+                convo, tokenize=False, add_generation_prompt=False
+            )
+            for convo in convos
+        ]
+        return {"text": texts}
+
     train_dataset = cast(
         Dataset,
         load_dataset(
             "json", data_files=cfg["data"]["processed_train_path"], split="train"
         ),
     )
+    train_dataset = train_dataset.map(formatting_prompts_func, batched=True)
     eval_dataset = cast(
         Dataset,
         load_dataset(
             "json", data_files=cfg["data"]["processed_val_path"], split="train"
         ),
     )
+    eval_dataset = eval_dataset.map(formatting_prompts_func, batched=True)
 
     trainer = SFTTrainer(
         model=model,
@@ -54,7 +69,6 @@ def train(cfg):
         train_dataset=train_dataset,
         eval_dataset=eval_dataset,
         args=SFTConfig(
-            completion_only_loss=True,
             max_length=cfg["model"]["max_seq_length"],
             dataset_num_proc=2,
             packing=False,
