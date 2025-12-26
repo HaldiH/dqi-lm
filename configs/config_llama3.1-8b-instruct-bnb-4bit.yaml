@@ -1,6 +1,6 @@
 model:
   name: "unsloth/Llama-3.1-8B-Instruct-bnb-4bit"
-  max_seq_length: 8192
+  max_seq_length: 4096
   load_in_4bit: true
 
 lora:
