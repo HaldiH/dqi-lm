@@ -32,7 +32,7 @@ training:
 
 wandb:
   project: "dqi-justification"
-  run_name: "run-justification-gpt-oss-20b-bf16-prompt-01"
+  run_name: "gpt-oss-20b-bf16"
 
 data:
   raw_debates_dir: "data/raw/hein-daily"

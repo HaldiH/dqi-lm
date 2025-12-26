@@ -32,7 +32,7 @@ training:
 
 wandb:
   project: "dqi-justification"
-  run_name: "run-justification-llama3.1-8b-instruct-prompt-01"
+  run_name: "llama3.1-8b-instruct"
 
 data:
   raw_debates_dir: "data/raw/hein-daily"

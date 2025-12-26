@@ -32,7 +32,7 @@ training:
 
 wandb:
   project: "dqi-justification"
-  run_name: "run-justification-mistral-small-3.2-24b-prompt-01"
+  run_name: "mistral-small-3.2-24b"
 
 data:
   raw_debates_dir: "data/raw/hein-daily"

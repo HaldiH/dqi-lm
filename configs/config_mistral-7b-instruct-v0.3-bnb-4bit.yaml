@@ -23,7 +23,7 @@ training:
   per_device_train_batch_size: 6
   gradient_accumulation_steps: 4
   warmup_steps: 90
-  max_steps: 900
+  max_steps: 400
   learning_rate: 1.0e-4
   logging_steps: 1
   seed: 3407
@@ -32,7 +32,7 @@ training:
 
 wandb:
   project: "dqi-justification"
-  run_name: "run-justification-mistral-7b-instruct-v0.3-bnb-4bit-prompt-01"
+  run_name: "mistral-7b-instruct-v0.3-bnb-4bit"
 
 data:
   raw_debates_dir: "data/raw/hein-daily"

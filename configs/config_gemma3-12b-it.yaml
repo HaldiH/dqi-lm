@@ -32,7 +32,7 @@ training:
 
 wandb:
   project: "dqi-justification"
-  run_name: "run-justification-gemma-3-12b-it-prompt-01"
+  run_name: "gemma-3-12b-it"
 
 data:
   raw_debates_dir: "data/raw/hein-daily"
