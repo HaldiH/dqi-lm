@@ -16,7 +16,7 @@ load_dotenv()
 
 def train(cfg):
     wandb.login(key=os.getenv("WANDB_API_KEY"))
-    wandb.init(project=cfg["wandb"]["project"], name=cfg["wandb"]["run_name"])
+    run = wandb.init(project=cfg["wandb"]["project"], name=cfg["wandb"]["run_name"])
 
     model, tokenizer = FastLanguageModel.from_pretrained(
         model_name=cfg["model"]["name"],
@@ -108,8 +108,8 @@ def train(cfg):
         description="Trained model artifact",
     )
     artifact.add_dir(cfg["training"]["output_dir"])
-    wandb.log_artifact(artifact)
-    wandb.finish()
+    run.log_artifact(artifact).wait()
+    run.finish()
     print("Finished.")
 
 
