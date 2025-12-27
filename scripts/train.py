@@ -100,7 +100,15 @@ def train(cfg):
     print("Saving model...")
     # model.save_pretrained_gguf(cfg['training']['output_dir'] + "_gguf", tokenizer, quantization_method = "q4_k_m")
     model.save_pretrained(cfg["training"]["output_dir"])
+    tokenizer.save_pretrained(cfg["training"]["output_dir"])
 
+    artifact = wandb.Artifact(
+        name=cfg["wandb"]["run_name"] + "-model",
+        type="model",
+        description="Trained model artifact",
+    )
+    artifact.add_dir(cfg["training"]["output_dir"])
+    wandb.log_artifact(artifact)
     wandb.finish()
     print("Finished.")
 

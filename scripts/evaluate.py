@@ -10,11 +10,15 @@ from sklearn.metrics import (
     confusion_matrix,
     accuracy_score,
     mean_absolute_error,
+    mean_squared_error,
+    precision_recall_fscore_support,
 )
 import matplotlib.pyplot as plt
 import seaborn as sns
 import os
 import argparse
+import weave
+import wandb
 
 
 def extract_score(generated_text, num_classes):
@@ -31,17 +35,59 @@ def extract_score(generated_text, num_classes):
         return -1  # Parsing error
 
 
+PREDICT_CONTEXT = {}
+
+
+@weave.op()
+def predict_text(text: str):
+    ctx = PREDICT_CONTEXT
+    model = ctx["model"]
+    text_tokenizer = ctx["text_tokenizer"]
+    chat_tokenizer = ctx["chat_tokenizer"]
+    system_prompt = ctx["system_prompt"]
+    num_classes = ctx["num_classes"]
+
+    messages = [
+        {"role": "system", "content": system_prompt},
+        {"role": "user", "content": f"Text to analyse: '{text}'"},
+    ]
+
+    prompt = chat_tokenizer.apply_chat_template(
+        messages, tokenize=False, add_generation_prompt=True
+    )
+
+    inputs = text_tokenizer([prompt], return_tensors="pt").to("cuda")
+    outputs = model.generate(**inputs, max_new_tokens=4, use_cache=True)
+    new_tokens = outputs[0, inputs.input_ids.shape[1] :]
+    decoded = text_tokenizer.decode(new_tokens, skip_special_tokens=True)
+    pred = extract_score(decoded, num_classes)
+
+    return {"prediction": pred, "decoded": decoded}
+
+
 def evaluate(config_path):
     # --- CONFIGURATION ---
     with open(config_path, "r") as f:
         cfg = yaml.safe_load(f)
 
+    wandb.login(key=os.getenv("WANDB_API_KEY"))
+    wandb_run = wandb.init(
+        project=cfg["wandb"]["project"],
+        name=f"{cfg['wandb']['run_name']}-eval",
+        job_type="evaluation",
+    )
+    weave.init(cfg["wandb"]["project"])
+
     # Load system prompt
     with open(cfg["prompts"]["system_prompt_path"], "r") as f:
         system_prompt = f.read().strip()
 
-    # 1. Load fine-tuned model
-    model_path = cfg["training"]["output_dir"]
+    # 1. Load fine-tuned model via W&B artifact to keep eval reproducible
+    artifact_name = cfg["wandb"].get(
+        "model_artifact", f"{cfg['wandb']['run_name']}-model:latest"
+    )
+    model_artifact = wandb_run.use_artifact(artifact_name, type="model")
+    model_path = model_artifact.download()
 
     print(f"Loading model from {model_path}...")
     model, tokenizer_or_processor = FastLanguageModel.from_pretrained(
@@ -90,33 +136,22 @@ def evaluate(config_path):
     y_true = df_test[col_label].astype(int).tolist()
     y_pred = []
 
+    PREDICT_CONTEXT.update(
+        {
+            "model": model,
+            "text_tokenizer": text_tokenizer,
+            "chat_tokenizer": chat_tokenizer,
+            "system_prompt": system_prompt,
+            "num_classes": num_classes,
+        }
+    )
+
     print("Starting inference on Test Set...")
 
     # 3. Prediction loop
     for text in tqdm(df_test["speech"]):
-        # Prepare messages in chat format
-        messages = [
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": f"Text to analyse: '{text}'"},
-        ]
-
-        # Convert messages to prompt text using tokenizer chat template
-        prompt = chat_tokenizer.apply_chat_template(
-            messages, tokenize=False, add_generation_prompt=True
-        )
-
-        # Encode with the text tokenizer, not a vision processor
-        inputs = text_tokenizer([prompt], return_tensors="pt").to("cuda")
-
-        # Generation
-        outputs = model.generate(**inputs, max_new_tokens=4, use_cache=True)
-
-        # Decode only the new tokens
-        new_tokens = outputs[0, inputs.input_ids.shape[1] :]
-        decoded = text_tokenizer.decode(new_tokens, skip_special_tokens=True)
-
-        pred = extract_score(decoded, num_classes)
-        y_pred.append(pred)
+        prediction = predict_text(text)
+        y_pred.append(prediction["prediction"])
 
     # Save predictions to CSV
     results_df = pd.DataFrame(
@@ -135,10 +170,19 @@ def evaluate(config_path):
     parsing_errors = len(y_pred) - len(valid_indices)
     print(f"\n--- RESULTS ---")
     print(f"LLM formatting errors : {parsing_errors}/{len(y_pred)}")
-    print(f"Accuracy : {accuracy_score(y_true_clean, y_pred_clean):.4f}")
-    print(
-        f"Mean Absolute Error : {mean_absolute_error(y_true_clean, y_pred_clean):.4f}"
+    accuracy = accuracy_score(y_true_clean, y_pred_clean)
+    print(f"Accuracy : {accuracy:.4f}")
+    mae = mean_absolute_error(y_true_clean, y_pred_clean)
+    mse = mean_squared_error(y_true_clean, y_pred_clean)
+    print(f"Mean Absolute Error : {mae:.4f}")
+    print(f"Mean Squared Error : {mse:.4f}")
+
+    precision, recall, f1, _ = precision_recall_fscore_support(
+        y_true_clean, y_pred_clean, average="macro", zero_division=0
     )
+    print(f"Precision (macro): {precision:.4f}")
+    print(f"Recall (macro): {recall:.4f}")
+    print(f"F1 Score (macro): {f1:.4f}")
 
     # Generate target names dynamically
     target_names = [f"Level {i}" for i in range(num_classes)]
@@ -151,6 +195,18 @@ def evaluate(config_path):
             target_names=target_names,
         )
     )
+
+    metrics_payload = {
+        "accuracy": accuracy,
+        "mae": mae,
+        "mse": mse,
+        "precision_macro": precision,
+        "recall_macro": recall,
+        "f1_macro": f1,
+        "parsing_errors": parsing_errors,
+        "evaluated_samples": len(y_true_clean),
+    }
+    wandb_run.log(metrics_payload)
 
     # 5. Visualization : Confusion Matrix
     labels = list(range(num_classes))
