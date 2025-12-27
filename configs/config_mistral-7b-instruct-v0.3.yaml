@@ -1,7 +1,7 @@
 model:
-  name: "unsloth/mistral-7b-instruct-v0.3-bnb-4bit"
+  name: "unsloth/mistral-7b-instruct-v0.3"
   max_seq_length: 4096
-  load_in_4bit: true
+  load_in_4bit: false
 
 lora:
   r: 32
@@ -19,7 +19,7 @@ lora:
     ]
 
 training:
-  output_dir: "outputs/mistral-7b-instruct-v0.3-bnb-4bit_finetuned"
+  output_dir: "outputs/mistral-7b-instruct-v0.3_finetuned"
   per_device_train_batch_size: 6
   gradient_accumulation_steps: 4
   warmup_steps: 90
@@ -27,12 +27,12 @@ training:
   learning_rate: 1.0e-4
   logging_steps: 1
   seed: 3407
-  optim: "adamw_8bit"
+  optim: "adamw_torch"
   gradient_checkpointing: true
 
 wandb:
   project: "dqi-justification"
-  run_name: "mistral-7b-instruct-v0.3-bnb-4bit"
+  run_name: "mistral-7b-instruct-v0.3"
 
 data:
   raw_debates_dir: "data/raw/hein-daily"
