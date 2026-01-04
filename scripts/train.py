@@ -72,7 +72,7 @@ def train(cfg):
         args=SFTConfig(
             max_length=cfg["model"]["max_seq_length"],
             dataset_num_proc=2,
-            packing=False,
+            packing=cfg["training"].get("packing", False),
             per_device_train_batch_size=cfg["training"]["per_device_train_batch_size"],
             gradient_accumulation_steps=cfg["training"]["gradient_accumulation_steps"],
             warmup_steps=cfg["training"]["warmup_steps"],
@@ -88,7 +88,8 @@ def train(cfg):
             save_strategy="steps",
             save_steps=10,
             load_best_model_at_end=True,
-            lr_scheduler_type="linear",
+            lr_scheduler_type=cfg["training"].get("lr_scheduler_type", "linear"),
+            neftune_noise_alpha=cfg["training"].get("neftune_noise_alpha"),
             seed=cfg["training"]["seed"],
             output_dir=cfg["training"]["output_dir"],
             report_to="wandb",
