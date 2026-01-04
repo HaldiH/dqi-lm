@@ -3,4 +3,5 @@ configs/config_gpt-oss-20b-bf16.yaml
 configs/config_llama3.1-8b-instruct-bnb-4bit.yaml
 configs/config_llama3.1-8b-instruct.yaml
 configs/config_mistral-7b-instruct-v0.3-bnb-4bit.yaml
+configs/config_mistral-7b-instruct-v0.3.yaml
 configs/config_mistral-small-3.2-24b.yaml
