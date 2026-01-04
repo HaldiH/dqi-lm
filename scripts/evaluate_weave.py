@@ -116,7 +116,7 @@ def main(args):
     weave.init(cfg["wandb"]["project"])
 
     model = DQIModel(
-        name=f"{cfg["wandb"]["run_name"]}-eval",
+        name=f"{cfg["wandb"]["run_name"]}",
         chat_model=cfg["training"]["output_dir"],
         cm_temperature=1.0,
         cm_max_new_tokens=cfg["model"]["max_seq_length"],
