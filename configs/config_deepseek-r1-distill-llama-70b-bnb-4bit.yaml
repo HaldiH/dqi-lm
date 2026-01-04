@@ -1,0 +1,59 @@
+model:
+  name: "unsloth/DeepSeek-R1-Distill-Llama-70B-bnb-4bit"
+  max_seq_length: 4096
+  load_in_4bit: true
+
+lora:
+  r: 64
+  lora_alpha: 128
+  lora_dropout: 0
+  target_modules:
+    [
+      "q_proj",
+      "k_proj",
+      "v_proj",
+      "o_proj",
+      "gate_proj",
+      "up_proj",
+      "down_proj",
+    ]
+
+training:
+  output_dir: "outputs/DeepSeek-R1-Distill-Llama-70B-bnb-4bit_finetuned"
+  per_device_train_batch_size: 2
+  gradient_accumulation_steps: 16
+  warmup_steps: 10
+  max_steps: 100
+  learning_rate: 5.0e-5
+  logging_steps: 1
+  seed: 3407
+  optim: "adamw_8bit"
+  gradient_checkpointing: true
+  lr_scheduler_type: "cosine"
+  packing: true
+  neftune_noise_alpha: 5
+
+wandb:
+  project: "dqi-justification"
+  run_name: "DeepSeek-R1-Distill-Llama-70B-bnb-4bit"
+
+data:
+  raw_debates_dir: "data/raw/hein-daily"
+  merged_debates_path: "data/clean/merged_debates.csv"
+  input_path: "data/raw/USfinal-clean.csv"
+  train_path: "data/clean/train.csv"
+  val_path: "data/clean/val.csv"
+  test_path: "data/clean/test.csv"
+  processed_train_path: "data/processed_train.jsonl"
+  processed_val_path: "data/processed_val.jsonl"
+  processed_test_path: "data/processed_test.jsonl"
+  # CSV column mapping
+  col_label: "Justification-level" # Name of the column containing the score (0-3)
+  col_speech: "speech" # Name of the column containing the text to analyze
+  labels: [0, 1, 2, 3, 4]
+
+evaluation:
+  results_dir: "results/DeepSeek-R1-Distill-Llama-70B-bnb-4bit_finetuned"
+
+prompts:
+  system_prompt_path: "prompts/justification_criteria.txt" # Path to your text file
