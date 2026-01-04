@@ -5,7 +5,7 @@ model:
 
 lora:
   r: 32
-  lora_alpha: 32
+  lora_alpha: 64
   lora_dropout: 0
   target_modules:
     [
@@ -20,15 +20,18 @@ lora:
 
 training:
   output_dir: "outputs/llama3.1-8b-instruct-bnb-4bit_finetuned"
-  per_device_train_batch_size: 2
-  gradient_accumulation_steps: 4
-  warmup_steps: 30
-  max_steps: 300
+  per_device_train_batch_size: 4
+  gradient_accumulation_steps: 8
+  warmup_steps: 10
+  max_steps: 100
   learning_rate: 1.0e-4
   logging_steps: 1
   seed: 3407
   optim: "adamw_8bit"
   gradient_checkpointing: true
+  lr_scheduler_type: "cosine"
+  packing: true
+  neftune_noise_alpha: 5
 
 wandb:
   project: "dqi-justification"
@@ -50,7 +53,7 @@ data:
   labels: [0, 1, 2, 3, 4]
 
 evaluation:
-  results_dir: "results/llama3.1_finetuned"
+  results_dir: "results/llama3.1-8b-instruct-bnb-4bit_finetuned"
 
 prompts:
   system_prompt_path: "prompts/justification_criteria.txt" # Path to your text file
