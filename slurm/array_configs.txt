@@ -1,3 +1,4 @@
+configs/config_deepseek-r1-distill-llama-70b-bnb-4bit.yaml
 configs/config_gemma3-12b-it.yaml
 configs/config_gpt-oss-20b-bf16.yaml
 configs/config_llama3.1-8b-instruct-bnb-4bit.yaml
