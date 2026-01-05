@@ -19,7 +19,7 @@ lora:
     ]
 
 training:
-  output_dir: "outputs/mistral-7b-instruct-v0.3_finetuned"
+  output_dir: "/home/users/h/haldih/scratch/dqi-lm/outputs/mistral-7b-instruct-v0.3_finetuned"
   per_device_train_batch_size: 6
   gradient_accumulation_steps: 4
   warmup_steps: 90

@@ -19,7 +19,7 @@ lora:
     ]
 
 training:
-  output_dir: "outputs/llama3.1-8b-instruct-bnb-4bit_finetuned"
+  output_dir: "/home/users/h/haldih/scratch/dqi-lm/outputs/llama3.1-8b-instruct-bnb-4bit_finetuned"
   per_device_train_batch_size: 4
   gradient_accumulation_steps: 8
   warmup_steps: 10
