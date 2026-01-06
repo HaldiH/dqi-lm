@@ -8,6 +8,7 @@ import weave
 from datasets import load_dataset
 from typing import Any
 from pydantic import PrivateAttr
+import wandb
 import weave
 import asyncio
 
@@ -50,6 +51,15 @@ def mae_score_op(expected: int, output: dict) -> dict:
     """Computes Mean Absolute Error between expected and predicted"""
     pred = output["predicted_label"]
     return {"mae": abs(expected - pred)}
+
+
+@weave.op()
+def results_collector(expected: int, output: dict) -> dict:
+    """Collects expected and predicted labels for further analysis."""
+    pred = output["predicted_label"]
+    all_preds.append(pred)
+    all_targets.append(expected)
+    return {}
 
 
 class DQIModel(weave.Model):
@@ -114,6 +124,9 @@ def main(args):
         cfg = yaml.safe_load(f)
 
     weave.init(cfg["wandb"]["project"])
+    global all_preds, all_targets
+    all_preds = []
+    all_targets = []
 
     model = DQIModel(
         name=f"{cfg["wandb"]["run_name"]}",
@@ -141,10 +154,33 @@ def main(args):
 
     evaluation = weave.Evaluation(
         dataset=dataset,
-        scorers=[exact_match_scorer, accuracy_score_op, mse_score_op, mae_score_op],
+        scorers=[
+            exact_match_scorer,
+            accuracy_score_op,
+            mse_score_op,
+            mae_score_op,
+            results_collector,
+        ],
     )
 
     results = asyncio.run(evaluation.evaluate(model))
+
+    wandb.init(
+        project=cfg["wandb"]["project"],
+        name=cfg["wandb"]["run_name"],
+        job_type="evaluation",
+    )
+    wandb.log(
+        {
+            "confusion_matrix": wandb.plot.confusion_matrix(
+                probs=None,
+                y_true=all_targets,
+                preds=all_preds,
+                class_names=[str(i) for i in range(len(cfg["data"]["labels"]))],
+            )
+        }
+    )
+    wandb.finish()
 
 
 if __name__ == "__main__":
