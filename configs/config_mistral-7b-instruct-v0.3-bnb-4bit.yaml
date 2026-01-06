@@ -22,10 +22,21 @@ training:
   output_dir: "outputs/mistral-7b-instruct-v0.3-bnb-4bit_finetuned"
   per_device_train_batch_size: 6
   gradient_accumulation_steps: 4
-  warmup_steps: 40
+  warmup_ratio: 0.1
   max_steps: 400
   learning_rate: 1.0e-4
-  logging_steps: 1
+  logging_steps: 20
+  eval_steps: 50
+  save_steps: 100
+  save_total_limit: 3
+  load_best_model_at_end: true
+  metric_for_best_model: "eval_loss"
+  save_safetensors: true
+  resume_from_checkpoint: true
+  weight_decay: 0.01
+  max_grad_norm: 0.3
+  tf32: true
+  dataloader_num_workers: 4
   seed: 3407
   optim: "adamw_torch"
   gradient_checkpointing: true
@@ -48,7 +59,7 @@ data:
   processed_val_path: "data/processed_val.jsonl"
   processed_test_path: "data/processed_test.jsonl"
   # CSV column mapping
-  col_label: "Justification-level" # Name of the column containing the score (0-3)
+  col_label: "Justification-level" # Name of the column containing the score (0-4)
   col_speech: "speech" # Name of the column containing the text to analyze
   labels: [0, 1, 2, 3, 4]
 

@@ -75,29 +75,41 @@ def train(cfg):
             packing=cfg["training"].get("packing", False),
             per_device_train_batch_size=cfg["training"]["per_device_train_batch_size"],
             gradient_accumulation_steps=cfg["training"]["gradient_accumulation_steps"],
-            warmup_steps=cfg["training"]["warmup_steps"],
+            warmup_ratio=cfg["training"].get("warmup_ratio", 0.1),
             max_steps=cfg["training"]["max_steps"],
             learning_rate=float(cfg["training"]["learning_rate"]),
             fp16=not is_bfloat16_supported(),
             bf16=is_bfloat16_supported(),
             logging_steps=cfg["training"]["logging_steps"],
             optim=cfg["training"]["optim"],
-            weight_decay=0.01,
+            weight_decay=cfg["training"].get("weight_decay", 0.01),
             eval_strategy="steps",
-            eval_steps=10,
+            eval_steps=cfg["training"].get("eval_steps", 50),
             save_strategy="steps",
-            save_steps=10,
-            load_best_model_at_end=True,
+            save_steps=cfg["training"].get("save_steps", 100),
+            save_total_limit=cfg["training"].get("save_total_limit", 3),
+            save_safetensors=cfg["training"].get("save_safetensors", True),
+            load_best_model_at_end=cfg["training"].get("load_best_model_at_end", True),
+            metric_for_best_model=cfg["training"].get(
+                "metric_for_best_model", "eval_loss"
+            ),
+            greater_is_better=cfg["training"].get("greater_is_better", False),
             lr_scheduler_type=cfg["training"].get("lr_scheduler_type", "linear"),
+            max_grad_norm=cfg["training"].get("max_grad_norm", 0.3),
             neftune_noise_alpha=cfg["training"].get("neftune_noise_alpha"),
             seed=cfg["training"]["seed"],
             output_dir=cfg["training"]["output_dir"],
             report_to="wandb",
+            tf32=cfg["training"].get("tf32", True),
+            dataloader_num_workers=cfg["training"].get("dataloader_num_workers", 4),
         ),
     )
 
     print("Starting training...")
-    trainer_stats = trainer.train()
+    resume_from_checkpoint = cfg["training"].get("resume_from_checkpoint", None)
+    if resume_from_checkpoint is True:
+        resume_from_checkpoint = "latest"
+    trainer_stats = trainer.train(resume_from_checkpoint=resume_from_checkpoint)
 
     print("Saving model...")
     output_dir = cfg["training"]["output_dir"]
