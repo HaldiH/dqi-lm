@@ -22,8 +22,8 @@ training:
   output_dir: "/home/users/h/haldih/scratch/dqi-lm/outputs/mistral-7b-instruct-v0.3-bnb-4bit_finetuned"
   per_device_train_batch_size: 6
   gradient_accumulation_steps: 4
-  warmup_steps: 10
-  max_steps: 100
+  warmup_steps: 40
+  max_steps: 400
   learning_rate: 1.0e-4
   logging_steps: 1
   seed: 3407
@@ -35,7 +35,7 @@ training:
 
 wandb:
   project: "dqi-justification"
-  run_name: "mistral-7b-instruct-v0.3"
+  run_name: "mistral-7b-instruct-v0.3-bnb-4bit"
 
 data:
   raw_debates_dir: "data/raw/hein-daily"

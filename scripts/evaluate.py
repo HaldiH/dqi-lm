@@ -11,6 +11,11 @@ from pydantic import PrivateAttr
 import wandb
 import weave
 import asyncio
+import matplotlib.pyplot as plt
+import seaborn as sns
+import io
+from PIL import Image
+from sklearn.metrics import confusion_matrix
 
 
 def extract_score(generated_text):
@@ -53,13 +58,55 @@ def mae_score_op(expected: int, output: dict) -> dict:
     return {"mae": abs(expected - pred)}
 
 
-@weave.op()
-def results_collector(expected: int, output: dict) -> dict:
-    """Collects expected and predicted labels for further analysis."""
-    pred = output["predicted_label"]
-    all_preds.append(pred)
-    all_targets.append(expected)
-    return {}
+class ConfusionMatrixScorer(weave.Scorer):
+    class_names: list[str]
+
+    @weave.op()
+    def score(
+        self,
+        expected: int,
+        output: dict,
+    ):
+        return {
+            "y_pred": output["predicted_label"],
+            "y_true": expected,
+        }
+
+    @weave.op()
+    def summarize(self, score_rows):
+        # Cette fonction reçoit la liste de TOUS les résultats de score()
+
+        # 1. Extraction des listes complètes
+        # Note : score_rows est une liste de dictionnaires (ceux retournés par score)
+        y_pred = [row["y_pred"] for row in score_rows if row.get("y_pred") is not None]
+        y_true = [row["y_true"] for row in score_rows if row.get("y_true") is not None]
+
+        # 2. Calcul de la matrice (Sklearn)
+        cm = confusion_matrix(y_true, y_pred)
+
+        # 3. Création du graphique (Matplotlib/Seaborn)
+        plt.figure(figsize=(8, 6))
+        sns.heatmap(
+            cm,
+            annot=True,
+            fmt="d",
+            cmap="Blues",
+            xticklabels=self.class_names,
+            yticklabels=self.class_names,
+        )
+        plt.xlabel("Prédiction")
+        plt.ylabel("Vérité")
+        plt.title("Matrice de Confusion")
+
+        # 4. Conversion en image pour Weave
+        buf = io.BytesIO()
+        plt.savefig(buf, format="png", bbox_inches="tight")
+        plt.close()
+        buf.seek(0)
+        image = Image.open(buf)
+
+        # 5. Retourner l'image (elle s'affichera dans le tableau récapitulatif Weave)
+        return {"confusion_plot": image}
 
 
 class DQIModel(weave.Model):
@@ -152,6 +199,10 @@ def main(args):
         for example in hf_dataset
     ]
 
+    cm_scorer = ConfusionMatrixScorer(
+        class_names=[str(i) for i in range(len(cfg["data"]["labels"]))]
+    )
+
     evaluation = weave.Evaluation(
         dataset=dataset,
         scorers=[
@@ -159,7 +210,7 @@ def main(args):
             accuracy_score_op,
             mse_score_op,
             mae_score_op,
-            results_collector,
+            cm_scorer,
         ],
     )
 
