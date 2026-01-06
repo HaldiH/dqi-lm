@@ -8,7 +8,6 @@ import weave
 from datasets import load_dataset
 from typing import Any
 from pydantic import PrivateAttr
-import wandb
 import weave
 import asyncio
 import matplotlib.pyplot as plt
@@ -74,17 +73,11 @@ class ConfusionMatrixScorer(weave.Scorer):
 
     @weave.op()
     def summarize(self, score_rows):
-        # Cette fonction reçoit la liste de TOUS les résultats de score()
-
-        # 1. Extraction des listes complètes
-        # Note : score_rows est une liste de dictionnaires (ceux retournés par score)
         y_pred = [row["y_pred"] for row in score_rows if row.get("y_pred") is not None]
         y_true = [row["y_true"] for row in score_rows if row.get("y_true") is not None]
 
-        # 2. Calcul de la matrice (Sklearn)
         cm = confusion_matrix(y_true, y_pred)
 
-        # 3. Création du graphique (Matplotlib/Seaborn)
         plt.figure(figsize=(8, 6))
         sns.heatmap(
             cm,
@@ -94,18 +87,16 @@ class ConfusionMatrixScorer(weave.Scorer):
             xticklabels=self.class_names,
             yticklabels=self.class_names,
         )
-        plt.xlabel("Prédiction")
-        plt.ylabel("Vérité")
-        plt.title("Matrice de Confusion")
+        plt.xlabel("Prediction")
+        plt.ylabel("Truth")
+        plt.title("Confusion Matrix")
 
-        # 4. Conversion en image pour Weave
         buf = io.BytesIO()
         plt.savefig(buf, format="png", bbox_inches="tight")
         plt.close()
         buf.seek(0)
         image = Image.open(buf)
 
-        # 5. Retourner l'image (elle s'affichera dans le tableau récapitulatif Weave)
         return {"confusion_plot": image}
 
 
@@ -171,9 +162,6 @@ def main(args):
         cfg = yaml.safe_load(f)
 
     weave.init(cfg["wandb"]["project"])
-    global all_preds, all_targets
-    all_preds = []
-    all_targets = []
 
     model = DQIModel(
         name=f"{cfg["wandb"]["run_name"]}",
@@ -215,23 +203,6 @@ def main(args):
     )
 
     results = asyncio.run(evaluation.evaluate(model))
-
-    wandb.init(
-        project=cfg["wandb"]["project"],
-        name=cfg["wandb"]["run_name"],
-        job_type="evaluation",
-    )
-    wandb.log(
-        {
-            "confusion_matrix": wandb.plot.confusion_matrix(
-                probs=None,
-                y_true=all_targets,
-                preds=all_preds,
-                class_names=[str(i) for i in range(len(cfg["data"]["labels"]))],
-            )
-        }
-    )
-    wandb.finish()
 
 
 if __name__ == "__main__":

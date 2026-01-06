@@ -19,7 +19,7 @@ lora:
     ]
 
 training:
-  output_dir: "/home/users/h/haldih/scratch/dqi-lm/outputs/gemma-3-12b-it_finetuned"
+  output_dir: "outputs/gemma-3-12b-it_finetuned"
   per_device_train_batch_size: 4
   gradient_accumulation_steps: 8
   warmup_steps: 30
@@ -29,6 +29,9 @@ training:
   seed: 3407
   optim: "adamw_torch"
   gradient_checkpointing: true
+  lr_scheduler_type: "cosine"
+  packing: true
+  neftune_noise_alpha: 5
 
 wandb:
   project: "dqi-justification"
