@@ -20,15 +20,16 @@ lora:
   lora_dropout: 0.05
 
 training:
-  output_dir: "outputs/mistral-7b-instruct-v0.3-bnb-4bit_finetuned"
-  per_device_train_batch_size: 6
+  output_dir: "outputs/verification"
+  per_device_train_batch_size: 1
   gradient_accumulation_steps: 4
   warmup_ratio: 0.1
+  max_steps: 1
   num_train_epochs: 3
   learning_rate: 1.0e-4
-  logging_steps: 20
-  eval_steps: 32
-  save_steps: 32
+  logging_steps: 1
+  eval_steps: 50
+  save_steps: 100
   save_total_limit: 3
   load_best_model_at_end: false
   metric_for_best_model: "eval_loss"
@@ -37,7 +38,7 @@ training:
   weight_decay: 0.01
   max_grad_norm: 0.3
   tf32: true
-  dataloader_num_workers: 4
+  dataloader_num_workers: 0
   seed: 3407
   optim: "adamw_torch"
   gradient_checkpointing: true
@@ -46,8 +47,8 @@ training:
   neftune_noise_alpha: 5
 
 wandb:
-  project: "dqi-justification"
-  run_name: "mistral-7b-instruct-v0.3-bnb-4bit"
+  project: "dqi-justification-verification"
+  run_name: "verification-run"
 
 data:
   raw_debates_dir: "data/raw/hein-daily"
@@ -65,7 +66,7 @@ data:
   labels: [0, 1, 2, 3, 4]
 
 evaluation:
-  results_dir: "results/mistral-7b-instruct-v0.3-bnb-4bit_finetuned"
+  results_dir: "results/verification"
 
 prompts:
   system_prompt_path: "prompts/justification_criteria.txt" # Path to your text file

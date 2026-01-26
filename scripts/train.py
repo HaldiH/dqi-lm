@@ -31,10 +31,11 @@ def train(cfg):
         r=cfg["lora"]["r"],
         target_modules=cfg["lora"]["target_modules"],
         lora_alpha=cfg["lora"]["lora_alpha"],
-        lora_dropout=cfg["lora"]["lora_dropout"],
+        lora_dropout=cfg["lora"].get("lora_dropout", 0),
         bias="none",
         use_gradient_checkpointing=cfg["training"]["gradient_checkpointing"],
         random_state=cfg["training"]["seed"],
+        use_rslora=cfg["lora"].get("use_rslora", False),
     )
 
     tokenizer = get_chat_template(tokenizer)
@@ -76,7 +77,8 @@ def train(cfg):
             per_device_train_batch_size=cfg["training"]["per_device_train_batch_size"],
             gradient_accumulation_steps=cfg["training"]["gradient_accumulation_steps"],
             warmup_ratio=cfg["training"].get("warmup_ratio", 0.1),
-            max_steps=cfg["training"]["max_steps"],
+            max_steps=cfg["training"].get("max_steps", -1),
+            num_train_epochs=cfg["training"].get("num_train_epochs", 3),
             learning_rate=float(cfg["training"]["learning_rate"]),
             fp16=not is_bfloat16_supported(),
             bf16=is_bfloat16_supported(),
