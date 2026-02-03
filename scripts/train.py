@@ -11,6 +11,7 @@ import wandb
 import os
 import argparse
 from dotenv import load_dotenv
+from publish import publish_model
 
 load_dotenv()
 
@@ -116,6 +117,10 @@ def train(cfg):
     # model.save_pretrained_gguf(cfg['training']['output_dir'] + "_gguf", tokenizer, quantization_method = "q4_k_m")
     model.save_pretrained(output_dir)
     tokenizer.save_pretrained(output_dir)
+
+    # Publish model if CLI flag is set
+    if cfg.get("publish", {}).get("enabled", False):
+        publish_model(model, tokenizer, cfg)
 
     wandb.finish()
     print("Finished.")

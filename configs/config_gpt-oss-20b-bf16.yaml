@@ -48,6 +48,28 @@ wandb:
   project: "dqi-justification"
   run_name: "gpt-oss-20b-bf16"
 
+# Model publishing options (optional)
+publish:
+  enabled: false # Set to true to enable publishing
+  
+  # Publish to HuggingFace Hub
+  huggingface:
+    enabled: false
+    repo_id: "username/gpt-oss-20b-dqi-justification" # Your HuggingFace repo ID
+    private: false # Set to true for private repos
+    commit_message: "Upload finetuned GPT-OSS 20B BF16 model"
+    # token: "" # Optional: Can also use HF_TOKEN environment variable
+  
+  # Publish to WandB as artifact
+  wandb:
+    enabled: false
+    artifact_name: "gpt-oss-20b-bf16-dqi-finetuned"
+    artifact_type: "model"
+    description: "GPT-OSS 20B BF16 finetuned on DQI justification task"
+    metadata:
+      task: "text-classification"
+      framework: "unsloth"
+
 data:
   raw_debates_dir: "data/raw/hein-daily"
   merged_debates_path: "data/clean/merged_debates.csv"

@@ -48,6 +48,29 @@ wandb:
   project: "dqi-justification"
   run_name: "mistral-7b-instruct-v0.3-bnb-4bit"
 
+# Model publishing options (optional)
+publish:
+  enabled: true # Set to true to enable publishing
+  
+  # Publish to HuggingFace Hub
+  huggingface:
+    enabled: false
+    repo_id: "username/mistral-7b-dqi-justification" # Your HuggingFace repo ID
+    private: false # Set to true for private repos
+    commit_message: "Upload finetuned Mistral 7B v0.3 (4-bit) model"
+    # token: "" # Optional: Can also use HF_TOKEN environment variable
+  
+  # Publish to WandB as artifact
+  wandb:
+    enabled: true
+    artifact_name: "mistral-7b-instruct-v0.3-bnb-4bit-dqi-finetuned"
+    artifact_type: "model"
+    description: "Mistral 7B Instruct v0.3 (4-bit quantized) finetuned on DQI justification task"
+    metadata:
+      task: "text-classification"
+      framework: "unsloth"
+      quantization: "4-bit"
+
 data:
   raw_debates_dir: "data/raw/hein-daily"
   merged_debates_path: "data/clean/merged_debates.csv"
