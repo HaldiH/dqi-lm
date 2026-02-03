@@ -10,10 +10,7 @@ import weave
 import wandb
 import os
 import argparse
-from dotenv import load_dotenv
 from publish import publish_model
-
-load_dotenv()
 
 
 def train(cfg):
@@ -127,6 +124,10 @@ def train(cfg):
 
 
 if __name__ == "__main__":
+    import dotenv
+
+    dotenv.load_dotenv()
+
     parser = argparse.ArgumentParser(description="Train the model.")
     parser.add_argument(
         "--config",
