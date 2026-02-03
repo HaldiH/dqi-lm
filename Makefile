@@ -39,4 +39,7 @@ train:
 evaluate:
 	$(PYTHON) scripts/evaluate.py --config $(CONFIG)
 
-.PHONY: env train evaluate
+publish:
+	$(PYTHON) scripts/publish.py --config $(CONFIG)
+
+.PHONY: env train evaluate publish
