@@ -15,7 +15,14 @@ module purge
 
 mkdir -p logs outputs
 
+APPTAINER_IMAGE="~/scratch/containers/unsloth.sif"
+SCRATCH_DIR=$(realpath ~/scratch)
 IP=localhost
 PORT=8888
 
-srun jupyter notebook --no-browser --ip=$IP --port=$PORT
+
+srun apptainer exec \
+  --nv \
+  --env-file .env \
+  --mount type=bind,source=$SCRATCH_DIR,destination=$SCRATCH_DIR $APPTAINER_IMAGE \
+    jupyter notebook --no-browser --ip=$IP --port=$PORT
