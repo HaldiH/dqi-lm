@@ -24,4 +24,4 @@ srun apptainer exec \
   --nv \
   --env-file .env \
   --mount type=bind,source=$SCRATCH_DIR,destination=$SCRATCH_DIR $APPTAINER_IMAGE \
-    un run jupyter notebook --no-browser --ip=$IP --port=$PORT
+    uv run jupyter notebook --no-browser --ip=$IP --port=$PORT
