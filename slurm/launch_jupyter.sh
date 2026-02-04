@@ -15,7 +15,7 @@ module purge
 
 mkdir -p logs outputs
 
-APPTAINER_IMAGE="~/scratch/containers/unsloth.sif"
+APPTAINER_IMAGE="$HOME/scratch/containers/unsloth.sif"
 SCRATCH_DIR="$(realpath ~/scratch)"
 IP=localhost
 PORT=8888
