@@ -15,7 +15,7 @@ module purge
 
 mkdir -p logs outputs
 
-APPTAINER_IMAGE="$HOME/scratch/containers/unsloth.sif"
+APPTAINER_IMAGE="$HOME/scratch/containers/llama.cpp.sif"
 SCRATCH_DIR="$(realpath ~/scratch)"
 HF_HOME="$SCRATCH_DIR/huggingface"
 IP=localhost
