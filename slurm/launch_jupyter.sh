@@ -16,6 +16,7 @@ module purge
 mkdir -p logs outputs
 
 APPTAINER_IMAGE="$HOME/scratch/containers/llama.cpp.sif"
+PYTHON=".venv/bin/python"
 SCRATCH_DIR="$(realpath ~/scratch)"
 HF_HOME="$SCRATCH_DIR/huggingface"
 IP=localhost
@@ -28,4 +29,4 @@ srun apptainer exec \
   --env-file .env \
   --env HF_HOME=$HF_HOME \
   --mount type=bind,source=$SCRATCH_DIR,destination=$SCRATCH_DIR $APPTAINER_IMAGE \
-    uv run jupyter lab --no-browser --ip=$IP --port=$PORT
+    $PYTHON -m jupyter lab --no-browser --ip=$IP --port=$PORT
