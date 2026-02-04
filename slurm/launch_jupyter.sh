@@ -17,11 +17,13 @@ mkdir -p logs outputs
 
 APPTAINER_IMAGE="$HOME/scratch/containers/unsloth.sif"
 SCRATCH_DIR="$(realpath ~/scratch)"
-IP=localhost
+HF_HOME="$SCRATCH_DIR/huggingface"
+IP=$SLURMD_NODENAME
 PORT=8888
 
 srun apptainer exec \
   --nv \
   --env-file .env \
+  --env HF_HOME=$HF_HOME \
   --mount type=bind,source=$SCRATCH_DIR,destination=$SCRATCH_DIR $APPTAINER_IMAGE \
     uv run jupyter notebook --no-browser --ip=$IP --port=$PORT
