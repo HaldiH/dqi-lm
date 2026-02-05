@@ -23,12 +23,12 @@ training:
   per_device_train_batch_size: 6
   gradient_accumulation_steps: 4
   warmup_ratio: 0.1
-  max_steps: 10
+  max_steps: 1
   learning_rate: 1.0e-4
   logging_steps: 1
-  eval_steps: 2
-  save_steps: 5
-  save_total_limit: 2
+  eval_steps: 1
+  save_steps: 1
+  save_total_limit: 1
   load_best_model_at_end: false
   metric_for_best_model: "eval_loss"
   save_safetensors: true

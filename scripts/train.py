@@ -137,4 +137,4 @@ if __name__ == "__main__":
 
     # Publish model if CLI flag is set
     if cfg.get("publish", {}).get("enabled", False):
-        publish_model(model, tokenizer, cfg)
+        publish_model(model, tokenizer, cfg, run)
