@@ -10,20 +10,9 @@ import weave
 import wandb
 import os
 import argparse
-from publish import publish_model
 
 
-class WandbModelUploadCallback(TrainerCallback):
-    def on_train_end(self, args, state, control, **kwargs):
-        if wandb.run is not None:
-            wandb.run.log_model(
-                path=args.output_dir,
-                name=f"model-{wandb.run.id}",
-                aliases=["latest", "final"],
-            )
-
-
-def train(cfg, run: wandb.Run):
+def train(cfg):
     model, tokenizer = FastLanguageModel.from_pretrained(
         model_name=cfg["model"]["name"],
         max_seq_length=cfg["model"]["max_seq_length"],
@@ -74,7 +63,6 @@ def train(cfg, run: wandb.Run):
         processing_class=tokenizer,
         train_dataset=train_dataset,
         eval_dataset=eval_dataset,
-        callbacks=[WandbModelUploadCallback()],
         args=SFTConfig(
             max_length=cfg["model"]["max_seq_length"],
             dataset_num_proc=2,
@@ -122,7 +110,32 @@ def train(cfg, run: wandb.Run):
     # model.save_pretrained_gguf(cfg['training']['output_dir'] + "_gguf", tokenizer, quantization_method = "q4_k_m")
     model.save_pretrained(output_dir)
     tokenizer.save_pretrained(output_dir)
+    trainer.save_model(output_dir)
+    trainer.save_state()
     return model, tokenizer
+
+
+def main(config):
+    with open(config, "r") as f:
+        cfg = yaml.safe_load(f)
+
+    run = wandb.init(project=cfg["wandb"]["project"], name=cfg["wandb"]["run_name"])
+    train(cfg)
+    run.finish()
+
+    # with wandb.init(
+    #     project=cfg["wandb"]["project"], id=run.id, resume="allow"
+    # ) as run:
+    #     artifact = wandb.Artifact(
+    #         name=cfg["wandb"].get("artifact_name", "finetuned-model"),
+    #         type=cfg["wandb"].get("artifact_type", "model"),
+    #         description=cfg["wandb"].get(
+    #             "artifact_description", "Finetuned language model"
+    #         ),
+    #         metadata=cfg["wandb"].get("artifact_metadata", {}),
+    #     )
+    #     artifact.add_dir(cfg["training"]["output_dir"])
+    #     run.log_artifact(artifact)
 
 
 if __name__ == "__main__":
@@ -138,16 +151,4 @@ if __name__ == "__main__":
         help="Path to the configuration file.",
     )
     args = parser.parse_args()
-
-    with open(args.config, "r") as f:
-        cfg = yaml.safe_load(f)
-
-    run = wandb.init(project=cfg["wandb"]["project"], name=cfg["wandb"]["run_name"])
-
-    model, tokenizer = train(cfg, run)
-
-    # Publish model if CLI flag is set
-    # if cfg.get("publish", {}).get("enabled", False):
-    #     publish_model(model, tokenizer, cfg, run)
-
-    run.finish()
+    main(**vars(args))

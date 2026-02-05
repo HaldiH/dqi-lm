@@ -82,31 +82,13 @@ def publish_model(model, tokenizer, cfg, run: wandb.Run):
             print(f"Error publishing to WandB: {e}")
 
 
-def main():
-    """CLI for publishing a trained model."""
-    parser = argparse.ArgumentParser(
-        description="Publish a trained model to HuggingFace Hub and/or WandB."
-    )
-    parser.add_argument(
-        "--config",
-        type=str,
-        required=True,
-        help="Path to the configuration file used for training.",
-    )
-    parser.add_argument(
-        "--model-dir",
-        type=str,
-        default=None,
-        help="Path to the trained model directory. If not provided, uses output_dir from config.",
-    )
-    args = parser.parse_args()
-
+def main(config, model_dir):
     # Load config
-    with open(args.config, "r") as f:
+    with open(config, "r") as f:
         cfg = yaml.safe_load(f)
 
     # Determine model directory
-    model_dir = args.model_dir or cfg["training"]["output_dir"]
+    model_dir = model_dir or cfg["training"]["output_dir"]
 
     if not os.path.exists(model_dir):
         print(f"Error: Model directory not found: {model_dir}")
@@ -145,7 +127,24 @@ def main():
 
 
 if __name__ == "__main__":
+    """CLI for publishing a trained model."""
     import dotenv
 
     dotenv.load_dotenv()
-    main()
+    parser = argparse.ArgumentParser(
+        description="Publish a trained model to HuggingFace Hub and/or WandB."
+    )
+    parser.add_argument(
+        "--config",
+        type=str,
+        required=True,
+        help="Path to the configuration file used for training.",
+    )
+    parser.add_argument(
+        "--model-dir",
+        type=str,
+        default=None,
+        help="Path to the trained model directory. If not provided, uses output_dir from config.",
+    )
+    args = parser.parse_args()
+    main(**vars(args))
