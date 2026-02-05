@@ -9,7 +9,7 @@ import wandb
 from unsloth import FastLanguageModel
 
 
-def publish_model(model, tokenizer, cfg):
+def publish_model(model, tokenizer, cfg, run: wandb.Run):
     """Publish the trained model to various platforms."""
     publish_config = cfg.get("publish", {})
 
@@ -45,7 +45,16 @@ def publish_model(model, tokenizer, cfg):
                     token=hf_token,
                     private=hf_config.get("private", False),
                     commit_message=hf_config.get(
-                        "commit_message", "Upload finetuned model"
+                        "commit_message", "Upload finetuned tokenizer"
+                    ),
+                )
+                model.push_to_hub_merged(
+                    repo_id=repo_id,
+                    token=hf_token,
+                    private=hf_config.get("private", False),
+                    save_method="merged_16bit",
+                    commit_message=hf_config.get(
+                        "commit_message", "Upload finetuned model (merged)"
                     ),
                 )
                 print(f"✓ Successfully published to HuggingFace Hub: {repo_id}")
@@ -67,7 +76,7 @@ def publish_model(model, tokenizer, cfg):
                 metadata=wandb_config.get("metadata", {}),
             )
             artifact.add_dir(output_dir)
-            wandb.log_artifact(artifact)
+            run.log_artifact(artifact)
             print(f"✓ Successfully published to WandB: {artifact_name}")
         except Exception as e:
             print(f"Error publishing to WandB: {e}")
@@ -107,8 +116,7 @@ def main():
 
     # Initialize WandB if publishing to WandB
     if cfg.get("publish", {}).get("wandb", {}).get("enabled", False):
-        wandb.login(key=os.getenv("WANDB_API_KEY"))
-        wandb.init(
+        run = wandb.init(
             project=cfg["wandb"]["project"],
             name=cfg["wandb"]["run_name"] + "-publish",
             job_type="model-publish",
@@ -128,10 +136,10 @@ def main():
         return
 
     # Publish the model
-    publish_model(model, tokenizer, cfg)
+    publish_model(model, tokenizer, cfg, run)
 
     if cfg.get("publish", {}).get("wandb", {}).get("enabled", False):
-        wandb.finish()
+        run.finish()
 
     print("Publishing complete.")
 

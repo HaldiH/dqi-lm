@@ -13,10 +13,7 @@ import argparse
 from publish import publish_model
 
 
-def train(cfg):
-    wandb.login(key=os.getenv("WANDB_API_KEY"))
-    wandb.init(project=cfg["wandb"]["project"], name=cfg["wandb"]["run_name"])
-
+def train(cfg, run: wandb.Run):
     model, tokenizer = FastLanguageModel.from_pretrained(
         model_name=cfg["model"]["name"],
         max_seq_length=cfg["model"]["max_seq_length"],
@@ -114,13 +111,7 @@ def train(cfg):
     # model.save_pretrained_gguf(cfg['training']['output_dir'] + "_gguf", tokenizer, quantization_method = "q4_k_m")
     model.save_pretrained(output_dir)
     tokenizer.save_pretrained(output_dir)
-
-    # Publish model if CLI flag is set
-    if cfg.get("publish", {}).get("enabled", False):
-        publish_model(model, tokenizer, cfg)
-
-    wandb.finish()
-    print("Finished.")
+    return model, tokenizer
 
 
 if __name__ == "__main__":
@@ -140,4 +131,10 @@ if __name__ == "__main__":
     with open(args.config, "r") as f:
         cfg = yaml.safe_load(f)
 
-    train(cfg)
+    run = wandb.init(project=cfg["wandb"]["project"], name=cfg["wandb"]["run_name"])
+
+    model, tokenizer = train(cfg, run)
+
+    # Publish model if CLI flag is set
+    if cfg.get("publish", {}).get("enabled", False):
+        publish_model(model, tokenizer, cfg)
