@@ -27,5 +27,5 @@ data/*
 .checkpoints/
 
 # Logs and output files
-logs/
-outputs/
+logs
+outputs
