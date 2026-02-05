@@ -5,10 +5,14 @@ description = "Language Model for Discourse Quality Indexing"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
+    "ipykernel>=7.1.0",
+    "ipywidgets>=8.1.8",
+    "langchain-ollama>=1.0.1",
     "matplotlib>=3.10.8",
     "python-dotenv>=1.2.1",
     "scikit-learn>=1.8.0",
     "seaborn>=0.13.2",
+    "tqdm>=4.67.1",
     "trl>=0.24.0",
     "unsloth>=2025.12.5",
     "wandb>=0.23.1",
