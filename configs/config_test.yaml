@@ -50,7 +50,7 @@ wandb:
 
 # Model publishing options (optional)
 publish:
-  enabled: true # Set to true to enable publishing
+  enabled: false # Set to true to enable publishing
   
   # Publish to HuggingFace Hub
   huggingface:
@@ -62,7 +62,7 @@ publish:
   
   # Publish to WandB as artifact
   wandb:
-    enabled: true
+    enabled: false
     artifact_name: "test-model-dqi-finetuned"
     artifact_type: "model"
     description: "Test model finetuned on DQI justification task"

@@ -13,6 +13,16 @@ import argparse
 from publish import publish_model
 
 
+class WandbModelUploadCallback(TrainerCallback):
+    def on_train_end(self, args, state, control, **kwargs):
+        if wandb.run is not None:
+            wandb.run.log_model(
+                path=args.output_dir,
+                name=f"model-{wandb.run.id}",
+                aliases=["latest", "final"],
+            )
+
+
 def train(cfg, run: wandb.Run):
     model, tokenizer = FastLanguageModel.from_pretrained(
         model_name=cfg["model"]["name"],
@@ -64,6 +74,7 @@ def train(cfg, run: wandb.Run):
         processing_class=tokenizer,
         train_dataset=train_dataset,
         eval_dataset=eval_dataset,
+        callbacks=[WandbModelUploadCallback()],
         args=SFTConfig(
             max_length=cfg["model"]["max_seq_length"],
             dataset_num_proc=2,
@@ -136,5 +147,7 @@ if __name__ == "__main__":
     model, tokenizer = train(cfg, run)
 
     # Publish model if CLI flag is set
-    if cfg.get("publish", {}).get("enabled", False):
-        publish_model(model, tokenizer, cfg, run)
+    # if cfg.get("publish", {}).get("enabled", False):
+    #     publish_model(model, tokenizer, cfg, run)
+
+    run.finish()
